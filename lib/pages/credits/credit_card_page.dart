@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'create_credit_page.dart';
 import '../../database/database_helper.dart';
+import 'package:intl/intl.dart';
 
 class CreditCardPage extends StatefulWidget {
   const CreditCardPage({super.key});
@@ -12,6 +13,10 @@ class CreditCardPage extends StatefulWidget {
 class _CreditCardPageState extends State<CreditCardPage> {
   List<Map<String, dynamic>> _credits = [];
   bool _isLoading = true;
+  final _currencyFormatter = NumberFormat.currency(
+    symbol: 'RM ',
+    decimalDigits: 2,
+  );
 
   @override
   void initState() {
@@ -159,7 +164,7 @@ class _CreditCardPageState extends State<CreditCardPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'RM ${credit['amount'].toStringAsFixed(2)}',
+                                            _currencyFormatter.format(credit['amount']),
                                             style: TextStyle(
                                               color: Theme.of(context).primaryColor,
                                               fontSize: 16,

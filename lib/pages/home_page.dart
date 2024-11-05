@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../widgets/section_header.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/quick_action_button.dart';
@@ -17,6 +18,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   double _monthlyCommitment = 0.0;
   double _creditCardUsage = 0.0;
+
+  final _currencyFormat = NumberFormat.currency(
+    locale: 'ms_MY',
+    symbol: 'RM ',
+    decimalDigits: 2,
+  );
 
   Future<void> _loadMonthlyCommitment() async {
     final total = await DatabaseHelper.instance.getTotalMonthlyCommitment();
@@ -44,19 +51,20 @@ class _HomePageState extends State<HomePage> {
     final size = MediaQuery.of(context).size;
     final padding = size.width * 0.04;
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+          ],
         ),
-        child: SafeArea(
+      ),
+      child: Scaffold(
+        // backgroundColor: Colors.transparent,
+        body: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -72,7 +80,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: size.height * 0.01),
                   SummaryCard(
                     title: 'Monthly Commitment',
-                    amount: 'RM ${_monthlyCommitment.toStringAsFixed(2)}',
+                    amount: _currencyFormat.format(_monthlyCommitment),
                     icon: Icons.calendar_month,
                   ),
                   
@@ -83,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: size.height * 0.01),
                   SummaryCard(
                     title: 'Current Usage',
-                    amount: 'RM ${_creditCardUsage.toStringAsFixed(2)}',
+                    amount: _currencyFormat.format(_creditCardUsage),
                     icon: Icons.credit_card,
                   ),
 

@@ -70,7 +70,7 @@ class _ReportPageState extends State<ReportPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Executive Summary'),
+        title: const Text('Summary Report'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -114,12 +114,12 @@ class _ReportPageState extends State<ReportPage> {
             const Divider(),
             _buildOverviewItem(
               'Total Monthly Commitment',
-              'RM ${_totalMonthlyCommitment.toStringAsFixed(2)}',
+              _formatCurrency(_totalMonthlyCommitment),
               Icons.calendar_today,
             ),
             _buildOverviewItem(
               'Total Credit Usage',
-              'RM ${_totalCreditUsage.toStringAsFixed(2)}',
+              _formatCurrency(_totalCreditUsage),
               Icons.credit_card,
             ),
             _buildOverviewItem(
@@ -160,7 +160,7 @@ class _ReportPageState extends State<ReportPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(entry.key),
-                  Text('\$${entry.value.toStringAsFixed(2)}'),
+                  Text(_formatCurrency(entry.value)),
                 ],
               ),
             )),
@@ -192,7 +192,7 @@ class _ReportPageState extends State<ReportPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(entry.key),
-                  Text('\$${entry.value.toStringAsFixed(2)}'),
+                  Text(_formatCurrency(entry.value)),
                 ],
               ),
             )),
@@ -225,5 +225,12 @@ class _ReportPageState extends State<ReportPage> {
         ],
       ),
     );
+  }
+
+  String _formatCurrency(double amount) {
+    return 'RM ${amount.toStringAsFixed(2).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},'
+    )}';
   }
 }

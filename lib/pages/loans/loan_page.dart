@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'create_loan_page.dart';
 import '../../database/database_helper.dart';
+import 'package:intl/intl.dart';
 
 class LoanPage extends StatefulWidget {
   const LoanPage({super.key});
@@ -12,6 +13,11 @@ class LoanPage extends StatefulWidget {
 class _LoanPageState extends State<LoanPage> {
   List<Map<String, dynamic>> _loans = [];
   bool _isLoading = true;
+  final _currencyFormat = NumberFormat.currency(
+    locale: 'en_MY',
+    symbol: 'RM',
+    decimalDigits: 2,
+  );
 
   @override
   void initState() {
@@ -158,7 +164,7 @@ class _LoanPageState extends State<LoanPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'RM ${loan['total_amount'].toStringAsFixed(2)}',
+                                            _currencyFormat.format(loan['total_amount']),
                                             style: TextStyle(
                                               color: Theme.of(context).primaryColor,
                                               fontSize: 16,
@@ -182,7 +188,7 @@ class _LoanPageState extends State<LoanPage> {
                                     children: [
                                       _buildInfoChip(
                                         Icons.payments_outlined,
-                                        'RM ${loan['monthly_payment'].toStringAsFixed(2)} monthly',
+                                        '${_currencyFormat.format(loan['monthly_payment'])} monthly',
                                       ),
                                       const SizedBox(width: 8),
                                       _buildInfoChip(
