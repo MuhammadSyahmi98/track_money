@@ -20,33 +20,59 @@ class DatabaseHelper {
 
     return await sqflite.openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _createDB,
     );
   }
 
   Future<void> _createDB(sqflite.Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE loans(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT NOT NULL,
-        total_amount REAL NOT NULL,
-        monthly_payment REAL NOT NULL,
-        due_date INTEGER NOT NULL,
-        created_at TEXT NOT NULL
-      )
-    ''');
-    
-    await db.execute('''
-      CREATE TABLE credits(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        amount REAL NOT NULL,
-        label TEXT NOT NULL,
-        date TEXT,
-        created_at TEXT NOT NULL
-      )
-    ''');
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='loans'"
+    );
+    if (tables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE loans(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL,
+          total_amount REAL NOT NULL,
+          monthly_payment REAL NOT NULL,
+          due_date INTEGER NOT NULL,
+          created_at TEXT NOT NULL
+        )
+      ''');
+    }
+
+    final creditTables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='credits'"
+    );
+    if (creditTables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE credits(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          amount REAL NOT NULL,
+          label TEXT NOT NULL,
+          date TEXT,
+          created_at TEXT NOT NULL
+        )
+      ''');
+    }
+
+    final expenseTables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'"
+    );
+    if (expenseTables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE expenses(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          amount REAL NOT NULL,
+          description TEXT NOT NULL,
+          date TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          label TEXT NOT NULL
+        )
+      ''');
+    }
   }
 
 
@@ -126,5 +152,41 @@ class DatabaseHelper {
       SELECT SUM(amount) as total FROM credits
     ''');
     return result.first['total'] as double? ?? 0.0;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllExpenses() async {
+    final db = await database;
+    return await db.query('expenses', orderBy: 'created_at DESC');
+  }
+
+  Future<double> getTotalExpenses() async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT SUM(amount) as total 
+      FROM expenses
+    ''');
+    return result.first['total'] as double? ?? 0.0;
+  }
+
+  Future<int> insertExpense(Map<String, dynamic> expense) async {
+    final db = await database;
+    return await db.insert('expenses', expense);
+  }
+
+  Future<void> deleteExpense(int id) async {
+    final db = await database;
+    await db.delete(
+      'expenses',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getExpenses() async {
+    final db = await database;
+    return await db.query(
+      'expenses',
+      orderBy: 'date DESC',
+    );
   }
 } 

@@ -16,6 +16,8 @@ class _ReportPageState extends State<ReportPage> {
   int _totalCreditsCount = 0;
   Map<String, double> _loanTypeDistribution = {};
   Map<String, double> _creditLabelDistribution = {};
+  double _totalExpenses = 0;
+  Map<String, double> _expenseCategoryDistribution = {};
 
   @override
   void initState() {
@@ -32,6 +34,8 @@ class _ReportPageState extends State<ReportPage> {
       final credits = await db.getAllCredits();
       final monthlyCommitment = await db.getTotalMonthlyCommitment();
       final creditUsage = await db.getTotalCreditCardUsage();
+      final expenses = await db.getAllExpenses();
+      final totalExpenses = await db.getTotalExpenses();
 
       // Calculate loan type distribution
       final loanTypes = <String, double>{};
@@ -47,6 +51,13 @@ class _ReportPageState extends State<ReportPage> {
         creditLabels[label] = (creditLabels[label] ?? 0) + (credit['amount'] as double);
       }
 
+      // Calculate expense category distribution
+      final expenseCategories = <String, double>{};
+      for (var expense in expenses) {
+        final label = expense['label'] as String;
+        expenseCategories[label] = (expenseCategories[label] ?? 0) + (expense['amount'] as double);
+      }
+
       setState(() {
         _totalMonthlyCommitment = monthlyCommitment;
         _totalCreditUsage = creditUsage;
@@ -54,6 +65,8 @@ class _ReportPageState extends State<ReportPage> {
         _totalCreditsCount = credits.length;
         _loanTypeDistribution = loanTypes;
         _creditLabelDistribution = creditLabels;
+        _totalExpenses = totalExpenses;
+        _expenseCategoryDistribution = expenseCategories;
         _isLoading = false;
       });
     } catch (e) {
@@ -90,6 +103,8 @@ class _ReportPageState extends State<ReportPage> {
                   _buildLoanAnalysisCard(),
                   const SizedBox(height: 20),
                   _buildCreditAnalysisCard(),
+                  const SizedBox(height: 20),
+                  _buildExpenseAnalysisCard(),
                 ],
               ),
             ),
@@ -131,6 +146,11 @@ class _ReportPageState extends State<ReportPage> {
               'Credit Entries',
               _totalCreditsCount.toString(),
               Icons.receipt_long,
+            ),
+            _buildOverviewItem(
+              'Total Expenses',
+              _formatCurrency(_totalExpenses),
+              Icons.money_off,
             ),
           ],
         ),
@@ -187,6 +207,38 @@ class _ReportPageState extends State<ReportPage> {
             ),
             const Divider(),
             ..._creditLabelDistribution.entries.map((entry) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(entry.key),
+                  Text(_formatCurrency(entry.value)),
+                ],
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpenseAnalysisCard() {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Expense Distribution by Label',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Divider(),
+            ..._expenseCategoryDistribution.entries.map((entry) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
